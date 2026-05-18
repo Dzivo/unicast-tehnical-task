@@ -36,22 +36,7 @@ async function resolveExistingMp4Path(filePath, mediaRoot) {
   if (!isInsideRoot(normalized, mediaRoot)) {
     return { error: 'filePath is outside allowed media root' };
   }
-
-  let resolvedPath;
-  try {
-    resolvedPath = await fs.realpath(normalized);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return { error: 'File does not exist' };
-    }
-    throw error;
-  }
-
-  if (!isInsideRoot(resolvedPath, mediaRoot)) {
-    return { error: 'filePath is outside allowed media root' };
-  }
-
-  return { resolvedPath };
+  return { resolvedPath: normalized };
 }
 
 export function createApp({ db, natsClient, config }) {
