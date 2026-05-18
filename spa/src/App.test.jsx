@@ -14,7 +14,7 @@ describe('App', () => {
 
   it('renders files from API and allows path submission', async () => {
     const fetchMock = vi
-      .spyOn(global, 'fetch')
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify(filesPayload), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify(filesPayload[0]), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: 2, status: 'Processing', filePath: '/tmp/new.mp4' }), { status: 202 }))

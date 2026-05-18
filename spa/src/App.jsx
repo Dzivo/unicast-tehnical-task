@@ -32,25 +32,8 @@ export default function App() {
 
   const selected = useMemo(() => files.find((item) => item.id === selectedId), [files, selectedId]);
 
-  async function loadFiles(selectId) {
-    setLoading(true);
-    try {
-      const payload = await request('/files');
-      setFiles(payload);
-      if (selectId) {
-        setSelectedId(selectId);
-      } else if (payload.length && !selectedId) {
-        setSelectedId(payload[0].id);
-      }
-      setError('');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadDetails(id) {
+  async function selectFile(id) {
+    setSelectedId(id);
     if (!id) {
       setDetails(null);
       return;
@@ -65,13 +48,61 @@ export default function App() {
     }
   }
 
-  useEffect(() => {
-    loadFiles();
-  }, []);
+  async function loadFiles(selectId) {
+    setLoading(true);
+    try {
+      const payload = await request('/files');
+      setFiles(payload);
+      if (selectId) {
+        await selectFile(selectId);
+      } else if (payload.length && !selectedId) {
+        await selectFile(payload[0].id);
+      } else if (!payload.length) {
+        await selectFile(null);
+      }
+      setError('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    loadDetails(selectedId);
-  }, [selectedId]);
+    let ignored = false;
+
+    void (async () => {
+      setLoading(true);
+      try {
+        const payload = await request('/files');
+        if (ignored) {
+          return;
+        }
+        setFiles(payload);
+
+        if (payload.length) {
+          const firstId = payload[0].id;
+          setSelectedId(firstId);
+          const detailsPayload = await request(`/files/${firstId}`);
+          if (!ignored) {
+            setDetails(detailsPayload);
+          }
+        }
+      } catch (err) {
+        if (!ignored) {
+          setError(err.message);
+        }
+      } finally {
+        if (!ignored) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      ignored = true;
+    };
+  }, []);
 
   async function submitPath(event) {
     event.preventDefault();
@@ -183,7 +214,7 @@ export default function App() {
               <li key={item.id}>
                 <button
                   className={`list-item ${selectedId === item.id ? 'active' : ''}`}
-                  onClick={() => setSelectedId(item.id)}
+                  onClick={() => selectFile(item.id)}
                   type="button"
                 >
                   <span>#{item.id} {item.filePath}</span>
