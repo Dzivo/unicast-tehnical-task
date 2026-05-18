@@ -1,0 +1,6 @@
+**/node_modules
+**/dist
+api-service/data
+api-service/uploads
+api-service/processed
+spa/.vite

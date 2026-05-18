@@ -1,0 +1,110 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: #f6f7fb;
+  color: #1f2937;
+}
+
+.app {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.subtitle {
+  margin-top: -0.75rem;
+  color: #4b5563;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+  margin-bottom: 1rem;
+}
+
+.form-row {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-row input,
+.form-row button,
+.controls button {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.65rem;
+}
+
+.controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.content-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.list-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.list-item.active {
+  outline: 2px solid #2563eb;
+}
+
+.status {
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  padding: 0.15rem 0.55rem;
+}
+
+.status-processing {
+  background: #fef3c7;
+}
+
+.status-successful {
+  background: #dcfce7;
+}
+
+.status-failed {
+  background: #fee2e2;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 0.75rem;
+}
+
+dt {
+  font-weight: 700;
+}
+
+@media (max-width: 680px) {
+  .app {
+    padding: 1rem;
+  }
+}
