@@ -33,6 +33,9 @@ async function resolveExistingMp4Path(filePath, mediaRoot) {
   if (!normalized.toLowerCase().endsWith('.mp4')) {
     return { error: 'filePath must point to an .mp4 file' };
   }
+  if (!isInsideRoot(normalized, mediaRoot)) {
+    return { error: 'filePath is outside allowed media root' };
+  }
 
   let resolvedPath;
   try {
