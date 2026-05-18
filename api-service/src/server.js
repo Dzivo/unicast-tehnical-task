@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import multer from 'multer';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { upsertFileStatus } from './db.js';
 
 function toFileDto(row) {
@@ -23,8 +24,43 @@ function isInsideRoot(filePath, rootPath) {
   return normalizedTarget === normalizedRoot || normalizedTarget.startsWith(`${normalizedRoot}${path.sep}`);
 }
 
+async function resolveExistingMp4Path(filePath, mediaRoot) {
+  if (typeof filePath !== 'string' || !path.isAbsolute(filePath)) {
+    return { error: 'filePath must be an absolute path' };
+  }
+
+  const normalized = path.resolve(filePath);
+  if (!normalized.toLowerCase().endsWith('.mp4')) {
+    return { error: 'filePath must point to an .mp4 file' };
+  }
+
+  let resolvedPath;
+  try {
+    resolvedPath = await fs.realpath(normalized);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return { error: 'File does not exist' };
+    }
+    throw error;
+  }
+
+  if (!isInsideRoot(resolvedPath, mediaRoot)) {
+    return { error: 'filePath is outside allowed media root' };
+  }
+
+  return { resolvedPath };
+}
+
 export function createApp({ db, natsClient, config }) {
   const app = express();
+  const limiter = rateLimit({
+    windowMs: 60_000,
+    limit: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.use(limiter);
   app.use(cors());
   app.use(express.json());
 
@@ -103,23 +139,15 @@ export function createApp({ db, natsClient, config }) {
   app.post('/files/process', async (req, res, next) => {
     try {
       const { filePath } = req.body ?? {};
-      if (typeof filePath !== 'string' || !path.isAbsolute(filePath)) {
-        res.status(400).json({ message: 'filePath must be an absolute path' });
-        return;
-      }
-      if (!isInsideRoot(filePath, config.mediaRoot)) {
-        res.status(400).json({ message: 'filePath is outside allowed media root' });
+      const result = await resolveExistingMp4Path(filePath, config.mediaRoot);
+      if (result.error) {
+        res.status(400).json({ message: result.error });
         return;
       }
 
-      await fs.access(filePath);
-      const queued = await queueProcessing(filePath);
+      const queued = await queueProcessing(result.resolvedPath);
       res.status(202).json(queued);
     } catch (error) {
-      if (error.code === 'ENOENT') {
-        res.status(400).json({ message: 'File does not exist' });
-        return;
-      }
       next(error);
     }
   });
@@ -147,7 +175,7 @@ export function createApp({ db, natsClient, config }) {
         return;
       }
 
-      if (record.processed_path) {
+      if (record.processed_path && isInsideRoot(record.processed_path, config.processedDir)) {
         await fs.rm(record.processed_path, { force: true });
       }
 
