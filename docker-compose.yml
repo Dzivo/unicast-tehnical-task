@@ -44,6 +44,7 @@ services:
       NATS_URL: nats://nats:4222
       PROCESSED_DIR: /app/processed
     volumes:
+      - ./api-service/uploads:/app/uploads:ro
       - ./api-service/processed:/app/processed
       - ./:/workspace:ro
 

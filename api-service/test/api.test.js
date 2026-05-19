@@ -118,6 +118,40 @@ describe('API service', () => {
     abort.abort();
   });
 
+  it('serves processed media for successful files', async () => {
+    const sourcePath = path.join(mediaRoot, 'video.mp4');
+    await fs.writeFile(sourcePath, 'data');
+
+    const queued = await request(app).post('/files/process').send({ filePath: sourcePath });
+    const processedPath = path.join(mediaRoot, 'processed', 'video.init.mp4');
+    await fs.mkdir(path.dirname(processedPath), { recursive: true });
+    await fs.writeFile(processedPath, 'processed-data');
+
+    await db.run(
+      `UPDATE files
+       SET status = 'Successful', processed_path = ?
+       WHERE id = ?`,
+      processedPath,
+      queued.body.id,
+    );
+
+    const response = await request(app).get(`/files/${queued.body.id}/media`);
+
+    expect(response.status).toBe(200);
+    expect(response.header['content-type']).toContain('video/mp4');
+    expect(response.body.toString()).toBe('processed-data');
+  });
+
+  it('returns not found when processed media is unavailable', async () => {
+    const filePath = path.join(mediaRoot, 'video.mp4');
+    await fs.writeFile(filePath, 'data');
+
+    const queued = await request(app).post('/files/process').send({ filePath });
+    const response = await request(app).get(`/files/${queued.body.id}/media`);
+
+    expect(response.status).toBe(404);
+  });
+
   it('rejects file paths outside of media root', async () => {
     const response = await request(app)
       .post('/files/process')

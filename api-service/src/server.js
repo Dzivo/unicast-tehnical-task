@@ -82,7 +82,10 @@ export function createApp({ db, natsClient, config }) {
       filePath,
     );
 
-    const fileId = insert.id;
+    const fileId = Number(insert.id);
+    if (!Number.isSafeInteger(fileId)) {
+      throw new Error('Generated file id is not a safe integer');
+    }
     try {
       natsClient.publish(config.processSubject, { fileId, filePath, processedDir: config.processedDir });
     } catch (error) {
@@ -121,6 +124,37 @@ export function createApp({ db, natsClient, config }) {
 
       res.json(toFileDto(row));
     } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get('/files/:id/media', async (req, res, next) => {
+    try {
+      const row = await db.get('SELECT * FROM files WHERE id = ?', Number(req.params.id));
+      if (!row) {
+        res.status(404).json({ message: 'File not found' });
+        return;
+      }
+
+      if (!row.processed_path) {
+        res.status(404).json({ message: 'Processed file not available' });
+        return;
+      }
+
+      const resolved = path.resolve(row.processed_path);
+      if (!isInsideRoot(resolved, config.processedDir)) {
+        res.status(403).json({ message: 'Processed file path is outside allowed directory' });
+        return;
+      }
+
+      await fs.access(resolved);
+      res.type('video/mp4');
+      res.sendFile(resolved);
+    } catch (error) {
+      if (error?.code === 'ENOENT') {
+        res.status(404).json({ message: 'Processed file not found' });
+        return;
+      }
       next(error);
     }
   });
