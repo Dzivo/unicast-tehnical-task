@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  --font-body: 'Space Grotesk', 'Segoe UI', Tahoma, sans-serif;
+  --font-mono: 'IBM Plex Mono', Consolas, monospace;
+
+  --bg-main: #f7faf8;
+  --bg-elevated: rgba(255, 255, 255, 0.8);
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-input: #ffffff;
+  --bg-muted: #f0f5f3;
+
+  --text-primary: #182420;
+  --text-secondary: #50625b;
+  --text-muted: #6b7f76;
+
+  --border-soft: #d6e2dc;
+  --border-strong: #8cb3a2;
+
+  --accent: #0f766e;
+  --accent-strong: #115e59;
+  --accent-contrast: #ecfdf5;
+
+  --danger: #c2410c;
+  --danger-surface: #ffedd5;
+
+  --status-processing-bg: #fef3c7;
+  --status-processing-text: #9a3412;
+  --status-successful-bg: #dcfce7;
+  --status-successful-text: #166534;
+  --status-failed-bg: #fee2e2;
+  --status-failed-text: #991b1b;
+
+  --shadow-soft: 0 14px 30px rgba(10, 32, 26, 0.08);
+  --shadow-strong: 0 24px 56px rgba(10, 32, 26, 0.16);
+}
+
+:root[data-theme='dark'] {
+  --bg-main: #081413;
+  --bg-elevated: rgba(10, 25, 23, 0.8);
+  --bg-card: rgba(13, 34, 31, 0.92);
+  --bg-input: #122926;
+  --bg-muted: #14312d;
+
+  --text-primary: #e6f4ef;
+  --text-secondary: #9cb9ae;
+  --text-muted: #7f9c91;
+
+  --border-soft: #214740;
+  --border-strong: #2d6f64;
+
+  --accent: #34d399;
+  --accent-strong: #10b981;
+  --accent-contrast: #03281f;
+
+  --danger: #fdba74;
+  --danger-surface: #4a1d08;
+
+  --status-processing-bg: #78350f;
+  --status-processing-text: #fde68a;
+  --status-successful-bg: #14532d;
+  --status-successful-text: #bbf7d0;
+  --status-failed-bg: #7f1d1d;
+  --status-failed-text: #fecaca;
+
+  --shadow-soft: 0 14px 30px rgba(0, 0, 0, 0.34);
+  --shadow-strong: 0 24px 56px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background:
+    radial-gradient(circle at 8% -10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 40%),
+    radial-gradient(circle at 90% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 40%),
+    var(--bg-main);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
