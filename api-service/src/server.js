@@ -75,13 +75,14 @@ export function createApp({ db, natsClient, config }) {
   });
 
   async function queueProcessing(filePath) {
-    const insert = await db.run(
+    const insert = await db.get(
       `INSERT INTO files (file_path, status)
-       VALUES (?, 'Processing')`,
+       VALUES (?, 'Processing')
+       RETURNING id`,
       filePath,
     );
 
-    const fileId = insert.lastID;
+    const fileId = insert.id;
     try {
       natsClient.publish(config.processSubject, { fileId, filePath, processedDir: config.processedDir });
     } catch (error) {

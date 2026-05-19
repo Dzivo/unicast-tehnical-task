@@ -5,7 +5,7 @@ This repository implements the requested architecture:
 - **API service (Node.js + Express)**
 - **Processing service (Golang)**
 - **NATS** for inter-service communication
-- **SQL persistence** with SQLite
+- **SQL persistence** with PostgreSQL
 - **React SPA** for upload and status tracking
 
 The sample input file is available at:
@@ -44,16 +44,20 @@ docker compose up --build
 
 ### Expected volume mounts
 
-- `./api-service/data:/app/data` stores SQLite database
 - `./api-service/uploads:/app/uploads` stores uploaded files from SPA/API
 - `./api-service/processed:/app/processed` stores extracted initialization segments
 - `./:/workspace:ro` provides read-only access to repository files for absolute-path processing
+
+### Service data storage
+
+- `postgres_data` Docker volume stores PostgreSQL data
 
 After startup:
 
 - API: `http://localhost:3000`
 - SPA: `http://localhost:5173`
 - NATS: `nats://localhost:4222`
+- PostgreSQL: `postgresql://postgres:postgres@localhost:5432/unicast`
 
 ## Run locally (without Docker)
 

@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import request from 'supertest';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { newDb } from 'pg-mem';
 import { initDb } from '../src/db.js';
 import { createApp, startResultListener } from '../src/server.js';
 
@@ -57,7 +58,9 @@ describe('API service', () => {
   beforeEach(async () => {
     const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'api-test-'));
     mediaRoot = temp;
-    db = await initDb(path.join(temp, 'files.db'));
+    const memoryDb = newDb();
+    const { Pool } = memoryDb.adapters.createPg();
+    db = await initDb(new Pool());
     nats = createMockNats();
 
     app = createApp({

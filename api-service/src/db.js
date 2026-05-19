@@ -1,25 +1,58 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { Pool } from 'pg';
 
-export async function initDb(dbPath) {
-  await fs.mkdir(path.dirname(dbPath), { recursive: true });
-  const db = await open({ filename: dbPath, driver: sqlite3.Database });
+function normalizeParams(params) {
+  if (params.length === 1 && Array.isArray(params[0])) {
+    return params[0];
+  }
+  return params;
+}
 
-  await db.exec(`
+function toPostgresParams(query) {
+  let index = 0;
+  return query.replace(/\?/g, () => `$${++index}`);
+}
+
+function createDbAdapter(pool) {
+  return {
+    async run(query, ...params) {
+      const result = await pool.query(toPostgresParams(query), normalizeParams(params));
+      return { rowCount: result.rowCount };
+    },
+
+    async get(query, ...params) {
+      const result = await pool.query(toPostgresParams(query), normalizeParams(params));
+      return result.rows[0];
+    },
+
+    async all(query, ...params) {
+      const result = await pool.query(toPostgresParams(query), normalizeParams(params));
+      return result.rows;
+    },
+
+    async close() {
+      await pool.end();
+    },
+  };
+}
+
+export async function initDb(connection) {
+  const pool = typeof connection === 'string'
+    ? new Pool({ connectionString: connection })
+    : connection;
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS files (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id BIGSERIAL PRIMARY KEY,
       file_path TEXT NOT NULL,
       status TEXT NOT NULL CHECK(status IN ('Processing', 'Failed', 'Successful')),
       error_message TEXT,
       processed_path TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
 
-  return db;
+  return createDbAdapter(pool);
 }
 
 export async function upsertFileStatus(db, { fileId, status, processedPath = null, errorMessage = null }) {

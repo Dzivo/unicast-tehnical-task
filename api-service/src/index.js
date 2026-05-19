@@ -4,7 +4,7 @@ import { initDb } from './db.js';
 import { connectNats } from './natsClient.js';
 import { createApp, startResultListener } from './server.js';
 
-const db = await initDb(config.dbPath);
+const db = await initDb(config.dbUrl);
 await fs.mkdir(config.processedDir, { recursive: true });
 const natsClient = await connectNats(config.natsUrl);
 

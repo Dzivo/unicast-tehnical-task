@@ -4,7 +4,7 @@ const rootDir = path.resolve(process.cwd(), '..');
 
 export const config = {
   port: Number(process.env.PORT || 3000),
-  dbPath: process.env.DB_PATH || path.resolve(process.cwd(), 'data', 'files.db'),
+  dbUrl: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/unicast',
   natsUrl: process.env.NATS_URL || 'nats://localhost:4222',
   processSubject: process.env.NATS_PROCESS_SUBJECT || 'file.process.start',
   resultSubject: process.env.NATS_RESULT_SUBJECT || 'file.process.result',

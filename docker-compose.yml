@@ -1,4 +1,15 @@
 services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: unicast
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
   nats:
     image: nats:2.11-alpine
     ports:
@@ -8,16 +19,16 @@ services:
     build:
       context: ./api-service
     depends_on:
+      - postgres
       - nats
     environment:
       PORT: 3000
       NATS_URL: nats://nats:4222
-      DB_PATH: /app/data/files.db
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/unicast
       UPLOADS_DIR: /app/uploads
       PROCESSED_DIR: /app/processed
       MEDIA_ROOT: /workspace
     volumes:
-      - ./api-service/data:/app/data
       - ./api-service/uploads:/app/uploads
       - ./api-service/processed:/app/processed
       - ./:/workspace:ro
@@ -45,3 +56,6 @@ services:
       VITE_API_BASE_URL: http://localhost:3000
     ports:
       - "5173:5173"
+
+volumes:
+  postgres_data:
